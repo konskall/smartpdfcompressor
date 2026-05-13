@@ -1,0 +1,988 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Smart PDF Compressor - Συμπίεση PDF Δωρεάν Online</title>
+  <meta name="title" content="Smart PDF Compressor - Συμπίεση PDF Δωρεάν Online" />
+  <meta name="description" content="Συμπιέστε αρχεία PDF γρήγορα και εύκολα με PDF Smart Compressor. Μείωση μεγέθους χωρίς απώλεια ποιότητας. Δωρεάν, ασφαλές και online." />
+  <meta name="keywords" content="συμπίεση pdf, pdf compressor, μείωση pdf, compress pdf, online pdf tools" />
+  <meta name="author" content="KonsKall" />
+  <meta name="robots" content="index, follow" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://konskall.github.io/smartpdfcompressor/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://konskall.github.io/smartpdfcompressor/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://konskall.github.io/smartpdfcompressor/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://konskall.github.io/smartpdfcompressor/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://konskall.github.io/smartpdfcompressor/android-chrome-512x512.png">
+  <link rel="icon" type="image/x-icon" href="https://konskall.github.io/smartpdfcompressor/favicon.ico">
+  <link rel="manifest" href="https://konskall.github.io/smartpdfcompressor/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://konskall.github.io/smartpdfcompressor/index.html" />
+  <meta property="og:title" content="Smart PDF Compressor - Συμπίεση PDF Δωρεάν Online" />
+  <meta property="og:description" content="Συμπιέστε αρχεία PDF γρήγορα και εύκολα με Smart PDF Compressor. Δωρεάν, ασφαλές και online." />
+  <meta property="og:image" content="https://konskall.github.io/smartpdfcompressor/SmartPDFCompressor.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://konskall.github.io/smartpdfcompressor/index.html" />
+  <meta name="twitter:title" content="Smart PDF Compressor" />
+  <meta name="twitter:description" content="Συμπίεση PDF online δωρεάν, γρήγορα και εύκολα." />
+  <meta name="twitter:image" content="https://konskall.github.io/smartpdfcompressor/SmartPDFCompressor.png" />
+  <link rel="canonical" href="https://konskall.github.io/smartpdfcompressor/index.html" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Smart PDF Compressor",
+  "url": "https://konskall.github.io/smartpdfcompressor/index.html",
+  "description": "Συμπιέστε αρχεία PDF γρήγορα και εύκολα με Smart PDF Compressor. Μείωση μεγέθους χωρίς απώλεια ποιότητας. Δωρεάν, ασφαλές και online.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "All",
+  "browserRequirements": "Requires JavaScript",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+  "creator": { "@type": "Person", "name": "KonsKall" },
+  "potentialAction": {
+    "@type": "UseAction",
+    "target": { "@type": "EntryPoint", "urlTemplate": "https://konskall.github.io/smartpdfcompressor" }
+  }
+}
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+:root {
+  --bg: #f4f6fb;
+  --header-gradient: linear-gradient(92deg, #1a73e8, #1e3a6e);
+  --drop-border: #b8c7e8;
+  --drop-bg: #ffffff;
+  --card-bg: #ffffff;
+  --card-shadow: 0 2px 12px rgba(26,62,110,0.09);
+  --text: #1a2a3a;
+  --text-sub: #9aabb8;
+  --text-muted: #b0b8cc;
+  --border: #dde4f0;
+  --select-bg: #ffffff;
+  --select-color: #1e3a6e;
+  --accent: #1a73e8;
+  --success: #0fbe88;
+  --error: #e8341a;
+  --radius: 12px;
+}
+html[data-theme="dark"] {
+  --bg: #0f1117;
+  --drop-border: #2a3550;
+  --drop-bg: #181e2e;
+  --card-bg: #181e2e;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --text: #ccd6f6;
+  --text-sub: #4a6a8a;
+  --text-muted: #3a5070;
+  --border: #2a3550;
+  --select-bg: #181e2e;
+  --select-color: #ccd6f6;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  background: var(--bg);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text);
+  transition: background-color 0.2s;
+}
+
+.page-card {
+  max-width: 900px;
+  margin: 0 auto;
+  border-radius: 22px;
+  border: 1.9px solid rgba(36,68,118,0.13);
+  box-shadow: 0 10px 30px rgba(36,68,118,0.12);
+  overflow: hidden;
+  background: var(--bg);
+  transition: background-color 0.2s;
+}
+
+header {
+  background: var(--header-gradient);
+  color: #fff;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Montserrat', 'Inter', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: .04em;
+  box-shadow: 0 4px 18px rgba(20,40,80,0.15);
+}
+.header-title { display: flex; align-items: center; gap: 10px; }
+.header-right  { display: flex; align-items: center; gap: 10px; }
+
+.theme-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff; border-radius: 20px;
+  padding: 5px 14px; font-size: 13px;
+  cursor: pointer; transition: background 0.15s;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.theme-btn:hover { background: rgba(255,255,255,0.22); }
+
+.rate-pill {
+  display: none; align-items: center;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.9); border-radius: 12px; padding: 3px 10px;
+  font-size: 11px; font-weight: 600;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.rate-pill--warn { background: rgba(232,52,26,0.3); border-color: rgba(232,52,26,0.6); color: #ffcccc; }
+
+main { padding: 20px 20px 0; }
+
+.drop-zone {
+  border: 2px dashed var(--drop-border);
+  border-radius: var(--radius);
+  background: var(--drop-bg);
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+  margin-bottom: 18px;
+}
+.drop-zone.dragover { border-color: var(--accent); background: rgba(26,115,232,0.05); }
+.drop-zone input { display: none; }
+.drop-zone svg { display: block; margin: 0 auto 10px; }
+.drop-title { font-weight: 600; color: var(--text); font-size: 14px; }
+.drop-sub { color: var(--text-sub); font-size: 12px; margin-top: 4px; }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.card-grid:empty { display: none; }
+
+.pdf-card {
+  min-width: 0;
+  border-radius: var(--radius);
+  padding: 14px 12px;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  border-top: 3px solid var(--border);
+  text-align: center;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+.pdf-card--animate { animation: cardEnter 0.2s ease both; }
+.pdf-card[data-status="pending"]    { border-top-color: var(--border); cursor: grab; }
+.pdf-card[data-status="pending"]:active { cursor: grabbing; }
+.pdf-card[data-status="processing"] { border-top-color: var(--accent); }
+.pdf-card[data-status="done"]       { border-top-color: var(--success); }
+.pdf-card[data-status="error"]      { border-top-color: var(--error); }
+.pdf-card[data-status="pending"].drag-over { border: 2px dashed var(--accent); }
+
+.card-icon-wrap { position: relative; display: inline-block; margin-bottom: 8px; }
+.card-icon { width: 36px; height: 44px; display: block; }
+.card-icon-wrap[data-status="pending"]    .card-icon { opacity: 0.4; }
+.card-icon-wrap[data-status="processing"] .card-icon { opacity: 0.75; }
+.card-icon-wrap[data-status="done"]       .card-icon,
+.card-icon-wrap[data-status="error"]      .card-icon { opacity: 1; }
+
+.status-badge {
+  position: absolute; bottom: -4px; right: -6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  animation: badgePop 0.3s cubic-bezier(.36,1.6,.54,1) both;
+}
+.status-badge.done  { background: var(--success); }
+.status-badge.error { background: var(--error); }
+
+.card-name {
+  font-weight: 600; font-size: 11.5px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-meta { font-size: 10.5px; color: var(--text-sub); margin: 2px 0 6px; }
+
+.card-progress-wrap {
+  background: rgba(26,115,232,0.12);
+  border-radius: 4px; height: 4px;
+  margin: 6px 0 4px; overflow: hidden;
+}
+.card-progress-bar {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), #4fa3f7);
+  transition: width 0.3s ease;
+}
+.card-progress-bar.indeterminate {
+  width: 100% !important;
+  transition: none;
+  animation: progressPulse 1.2s ease-in-out infinite;
+}
+
+.card-result { font-size: 11px; font-weight: 600; color: var(--success); margin: 2px 0 5px; }
+.card-error-msg { font-size: 10.5px; color: var(--error); margin: 4px 0; line-height: 1.35; }
+.card-status-label { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+.card-dl-btn {
+  width: 100%; background: var(--success); color: #fff;
+  border: none; border-radius: 7px; padding: 5px 0;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: filter 0.15s; font-family: inherit;
+}
+.card-dl-btn:hover { filter: brightness(1.1); }
+
+.card-retry-btn {
+  width: 100%; background: transparent; color: var(--error);
+  border: 1.5px solid var(--error); border-radius: 7px;
+  padding: 4px 0; font-size: 10.5px; font-weight: 600;
+  cursor: pointer; margin-top: 5px;
+  transition: background 0.15s, color 0.15s; font-family: inherit;
+}
+.card-retry-btn:hover { background: var(--error); color: #fff; }
+
+.card-recompress-btn {
+  display: block; margin: 3px auto 0;
+  background: none; border: none; color: var(--text-muted);
+  font-size: 10.5px; cursor: pointer; padding: 2px 8px; border-radius: 4px;
+  transition: color 0.15s, background 0.15s; font-family: inherit;
+}
+.card-recompress-btn:hover { color: var(--accent); background: rgba(26,115,232,0.1); }
+
+.remove-card-btn {
+  position: absolute; top: 6px; right: 6px;
+  background: none; border: none; color: var(--text-muted);
+  font-size: 14px; cursor: pointer; line-height: 1;
+  border-radius: 50%; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.remove-card-btn:hover { background: rgba(232,52,26,0.1); color: var(--error); }
+
+.summary-bar {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(15,190,136,0.08); border: 1px solid rgba(15,190,136,0.25);
+  border-radius: 9px; padding: 8px 16px; margin-bottom: 12px;
+  font-size: 12px; font-weight: 600; color: var(--success);
+}
+html[data-theme="dark"] .summary-bar {
+  background: rgba(15,190,136,0.05); border-color: rgba(15,190,136,0.15);
+}
+
+.action-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 0 20px; flex-wrap: wrap;
+}
+.action-bar select {
+  flex: 1; min-width: 180px;
+  border: 1.5px solid var(--drop-border);
+  border-radius: 9px; padding: 9px 12px;
+  font-size: 13px; background: var(--select-bg);
+  color: var(--select-color); font-family: inherit;
+  font-weight: 600; transition: background-color 0.2s, color 0.2s;
+}
+.compress-btn {
+  background: var(--header-gradient); color: #fff;
+  border: none; border-radius: 9px; padding: 9px 22px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(26,115,232,0.28);
+  transition: transform 0.1s, box-shadow 0.13s;
+  font-family: inherit;
+}
+.compress-btn:hover:not(:disabled) { transform: scale(1.022); box-shadow: 0 6px 16px rgba(26,115,232,0.35); }
+.compress-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.secondary-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; color: var(--accent);
+  border: 1.5px solid var(--accent); border-radius: 9px;
+  padding: 9px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, color 0.15s; font-family: inherit;
+}
+.secondary-btn:hover { background: var(--accent); color: #fff; }
+
+.ghost-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; color: var(--text-muted);
+  border: 1.5px solid var(--border); border-radius: 9px;
+  padding: 9px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s; font-family: inherit;
+}
+.ghost-btn:hover { border-color: var(--error); color: var(--error); background: rgba(232,52,26,0.06); }
+
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #1a2a3a; color: #fff;
+  padding: 12px 22px; border-radius: 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  white-space: nowrap; z-index: 9999;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+html[data-theme="dark"] .toast { background: #ccd6f6; color: #0f1117; }
+
+#cannotCompressInfo {
+  margin: 8px 20px 18px;
+  background: #fffbe8;
+  border-radius: 15px;
+  border: 1.8px solid #f8b650;
+  box-shadow: 0 4px 12px rgba(248,182,80,0.3);
+  padding: 18px 20px 14px;
+  font-size: 15px; color: #db8a00;
+}
+html[data-theme="dark"] #cannotCompressInfo { background: #1e1a0a; border-color: #6b4a00; color: #c89030; }
+html[data-theme="dark"] .page-card { border-color: rgba(255,255,255,0.06); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+
+footer {
+  background: var(--header-gradient);
+  color: #eaf4fe; text-align: center;
+  font-size: 14px; letter-spacing: .03em;
+  padding: 20px 0;
+  box-shadow: 0 -4px 18px rgba(20,40,80,0.15);
+}
+footer a { color: #fff; }
+
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+@keyframes badgePop {
+  from { transform: scale(0); }
+  60%  { transform: scale(1.25); }
+  to   { transform: scale(1); }
+}
+
+@media (max-width: 900px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  header { font-size: 1rem; padding: 12px 14px; }
+  main { padding: 14px 12px 0; }
+  .card-grid { grid-template-columns: 1fr; }
+  .action-bar { flex-direction: column; align-items: stretch; }
+  .compress-btn, .secondary-btn, .ghost-btn { width: 100%; justify-content: center; text-align: center; }
+  #cannotCompressInfo { margin: 8px 12px 14px; font-size: 13px; }
+}
+  </style>
+</head>
+<body>
+<div class="page-card">
+  <header>
+    <div class="header-title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="6" fill="rgba(255,255,255,0.15)"/>
+        <path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="#fff" stroke-width="1.5" fill="none"/>
+        <path d="M14 3v5h5" stroke="#fff" stroke-width="1.5" fill="none"/>
+        <path d="M9 13h6M9 16h4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Smart PDF Compressor
+    </div>
+    <div class="header-right">
+      <span id="rateDisplay" class="rate-pill"></span>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode">
+        <svg id="themeIcon" width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" stroke="#fff" stroke-width="2" fill="none"/>
+        </svg>
+        <span id="themeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="drop-zone" id="dropZone">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+        <polyline points="17 8 12 3 7 8" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="12" y1="3" x2="12" y2="15" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <div class="drop-title">Σύρετε PDF αρχεία εδώ ή κάντε κλικ</div>
+      <div class="drop-sub">Πολλαπλά αρχεία υποστηρίζονται • Έως 10 MB το καθένα</div>
+      <input type="file" id="fileInput" accept="application/pdf" multiple />
+    </div>
+
+    <div class="card-grid" id="cardGrid"></div>
+
+    <div id="summaryBar" class="summary-bar" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span id="summaryText"></span>
+    </div>
+
+    <div class="action-bar" id="actionBar" style="display:none">
+      <select id="quality">
+        <option value="HIGH">Υψηλή συμπίεση (μικρότερο μέγεθος)</option>
+        <option value="MEDIUM" selected>Ισορροπημένη (προτεινόμενη)</option>
+        <option value="LOW">Χαμηλή (καλύτερη ποιότητα)</option>
+      </select>
+      <button class="compress-btn" id="compressBtn" disabled>Συμπίεση αρχείων</button>
+      <button class="secondary-btn" id="downloadAllBtn" style="display:none" onclick="downloadAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Λήψη όλων
+      </button>
+      <button class="ghost-btn" id="clearBtn" style="display:none" onclick="clearCompleted()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Καθαρισμός
+      </button>
+    </div>
+  </main>
+
+  <div id="cannotCompressInfo">
+    <div style="display:flex;align-items:center;gap:10px;font-weight:600;">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+        <polygon points="13,3 25,23 1,23" fill="#f7b42c"/>
+        <rect x="11.2" y="10.5" width="3.6" height="7" rx="1.7" fill="#fff"/>
+        <rect x="11.2" y="19" width="3.6" height="3.6" rx="1.6" fill="#fff"/>
+      </svg>
+      ΠΡΟΣΟΧΗ: Τα παρακάτω PDF δεν μπορούν να συμπιεστούν:
+    </div>
+    <ul style="margin:10px 0 4px 34px;font-size:14px;">
+      <li>PDF με password ή security περιορισμούς</li>
+      <li>PDF που δεν επιτρέπουν επεξεργασία</li>
+      <li>PDF ήδη συμπιεσμένα</li>
+      <li>PDF με βλάβες ή ασυνήθιστη δομή</li>
+    </ul>
+  </div>
+
+  <footer>
+    © 2025 Smart PDF Compressor • Powered by
+    <a href="http://linkedin.com/in/konstantinos-kalliakoudis-902b90103" target="_blank" rel="noopener noreferrer">KonsKall</a>
+  </footer>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  const API_URL = 'https://pdf-compress-api-dl83.onrender.com';
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+  function fmtBytes(n) {
+    if (!n || n < 0) return '0 B';
+    const k = 1024, sizes = ['B','KB','MB','GB'];
+    const i = Math.floor(Math.log(n) / Math.log(k));
+    return (n / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+  }
+  function uploadWithProgress(formData, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_URL}/api/compress`, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable && typeof onProgress === 'function')
+          onProgress((e.loaded / e.total) * 100);
+      };
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(new Blob([xhr.response], { type: 'application/pdf' }));
+        } else {
+          let msg = 'Σφάλμα κατά τη συμπίεση';
+          try {
+            const text = new TextDecoder('utf-8').decode(xhr.response);
+            const ct = xhr.getResponseHeader('content-type') || '';
+            if (ct.includes('application/json')) {
+              const j = JSON.parse(text);
+              msg = j.error || j.message || JSON.stringify(j);
+            } else { msg = text; }
+          } catch (_) {}
+          if (msg.includes(';')) msg = msg.split(';')[0].trim();
+          reject(new Error(msg));
+        }
+      };
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send(formData);
+    });
+  }
+
+  // ── State ──────────────────────────────────────────────
+  let files = [];
+  let isProcessing = false;
+  let idCounter = 0;
+  let dragSrcId = null;
+  let toastTimer = null;
+
+  const cardGrid       = document.getElementById('cardGrid');
+  const actionBar      = document.getElementById('actionBar');
+  const compressBtn    = document.getElementById('compressBtn');
+  const qualitySel     = document.getElementById('quality');
+  const dropZone       = document.getElementById('dropZone');
+  const fileInput      = document.getElementById('fileInput');
+  const summaryBar     = document.getElementById('summaryBar');
+  const summaryText    = document.getElementById('summaryText');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
+  const clearBtn       = document.getElementById('clearBtn');
+  const rateDisplay    = document.getElementById('rateDisplay');
+
+  // ── Rate limit tracking ─────────────────────────────────
+  const RATE_KEY    = 'pdfcompressor-requests';
+  const RATE_WINDOW = 15 * 60 * 1000;
+  const RATE_MAX    = 20;
+
+  function getStoredRequests() {
+    try { return JSON.parse(localStorage.getItem(RATE_KEY) || '[]'); } catch (_) { return []; }
+  }
+  function trackRequest() {
+    const now = Date.now();
+    const recent = getStoredRequests().filter(t => now - t < RATE_WINDOW);
+    recent.push(now);
+    localStorage.setItem(RATE_KEY, JSON.stringify(recent));
+    updateRateDisplay();
+  }
+  function updateRateDisplay() {
+    const now = Date.now();
+    const count = getStoredRequests().filter(t => now - t < RATE_WINDOW).length;
+    if (count === 0) { rateDisplay.style.display = 'none'; return; }
+    rateDisplay.style.display = 'inline-flex';
+    rateDisplay.textContent = `${count}/${RATE_MAX}`;
+    rateDisplay.className = 'rate-pill' + (RATE_MAX - count <= 3 ? ' rate-pill--warn' : '');
+  }
+
+  function plural(n, singular, pluralForm) { return n === 1 ? singular : pluralForm; }
+
+  // ── Toast ───────────────────────────────────────────────
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  // ── File management ─────────────────────────────────────
+  function addFiles(fileList) {
+    const newEntries = [];
+    for (const f of fileList) {
+      if (f.type !== 'application/pdf') continue;
+      if (files.some(e => e.file.name === f.name && e.file.size === f.size)) continue;
+      const entry = {
+        id: ++idCounter, file: f, status: 'pending',
+        pageCount: null, compressedSize: null, reductionPct: null,
+        errorMsg: null, _blob: null
+      };
+      if (f.size > 10 * 1024 * 1024) {
+        entry.status = 'error';
+        entry.errorMsg = 'Υπερβαίνει το όριο 10 MB';
+      }
+      files.push(entry);
+      newEntries.push(entry);
+    }
+    renderGrid(new Set(newEntries.map(e => e.id)));
+    updateActionBar();
+    updateSummaryBar();
+    newEntries.forEach(e => { if (e.status === 'pending') extractPageCount(e); });
+  }
+
+  function removeFile(id) {
+    files = files.filter(f => f.id !== id);
+    renderGrid();
+    updateActionBar();
+    updateSummaryBar();
+  }
+
+  function retryFile(id) {
+    const entry = files.find(f => f.id === id);
+    if (!entry || entry.status !== 'error') return;
+    entry.status = 'pending';
+    entry.errorMsg = null;
+    updateCard(id);
+    updateActionBar();
+    updateSummaryBar();
+    runQueue();
+  }
+
+  function recompressFile(id) {
+    const entry = files.find(f => f.id === id);
+    if (!entry || entry.status !== 'done') return;
+    entry.status = 'pending';
+    entry._blob = null;
+    entry.compressedSize = null;
+    entry.reductionPct = null;
+    updateCard(id);
+    updateActionBar();
+    updateSummaryBar();
+    runQueue();
+  }
+
+  function clearCompleted() {
+    files = files.filter(f => f.status === 'pending' || f.status === 'processing');
+    renderGrid();
+    updateActionBar();
+    updateSummaryBar();
+  }
+
+  async function downloadAll() {
+    if (typeof JSZip === 'undefined') { showToast('Σφάλμα: η βιβλιοθήκη ZIP δεν φορτώθηκε'); return; }
+    const doneFiles = files.filter(f => f.status === 'done' && f._blob);
+    if (doneFiles.length < 2) return;
+    const zip = new JSZip();
+    doneFiles.forEach(entry => {
+      zip.file(entry.file.name.replace(/\.pdf$/i, '') + '.compressed.pdf', entry._blob);
+    });
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'compressed-pdfs.zip';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 110);
+  }
+
+  // ── Action bar & summary ────────────────────────────────
+  function updateActionBar() {
+    const total        = files.length;
+    const pendingCount = files.filter(f => f.status === 'pending').length;
+    actionBar.style.display = total > 0 ? 'flex' : 'none';
+    if (isProcessing) {
+      compressBtn.textContent = 'Σε εξέλιξη...';
+      compressBtn.disabled = true;
+    } else {
+      compressBtn.textContent = pendingCount > 0
+        ? `Συμπίεση ${pendingCount} ${plural(pendingCount, 'αρχείου', 'αρχείων')}`
+        : 'Συμπίεση αρχείων';
+      compressBtn.disabled = pendingCount === 0;
+    }
+  }
+
+  function updateSummaryBar() {
+    const doneFiles    = files.filter(f => f.status === 'done');
+    const hasCompleted = files.some(f => f.status === 'done' || f.status === 'error');
+
+    if (doneFiles.length > 0) {
+      const totalOrig = doneFiles.reduce((s, f) => s + f.file.size, 0);
+      const totalComp = doneFiles.reduce((s, f) => s + (f.compressedSize || 0), 0);
+      const saved = Math.max(0, totalOrig - totalComp);
+      const pct = totalOrig > 0 ? Math.max(0, ((totalOrig - totalComp) / totalOrig) * 100).toFixed(1) : '0.0';
+      summaryBar.style.display = 'flex';
+      summaryText.textContent = `${doneFiles.length} ${plural(doneFiles.length, 'αρχείο ολοκληρώθηκε', 'αρχεία ολοκληρώθηκαν')} · Εξοικονόμηση ${fmtBytes(saved)} (−${pct}%)`;
+    } else {
+      summaryBar.style.display = 'none';
+    }
+
+    downloadAllBtn.style.display = doneFiles.length >= 2 ? 'inline-flex' : 'none';
+    clearBtn.style.display = hasCompleted ? 'inline-flex' : 'none';
+  }
+
+  // ── Card rendering ──────────────────────────────────────
+  function renderGrid(newIds = new Set()) {
+    cardGrid.innerHTML = '';
+    let animIdx = 0;
+    files.forEach(entry => {
+      const isNew = newIds.has(entry.id);
+      const card = document.createElement('div');
+      card.className = 'pdf-card' + (isNew ? ' pdf-card--animate' : '');
+      card.dataset.id = entry.id;
+      card.dataset.status = entry.status;
+      if (isNew) { card.style.animationDelay = `${animIdx * 40}ms`; animIdx++; }
+      card.innerHTML = buildCardHTML(entry);
+      if (entry.status === 'pending') {
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', e => onCardDragStart(e, entry.id));
+        card.addEventListener('dragend',   onCardDragEnd);
+        card.addEventListener('dragover',  e => onCardDragOver(e, entry.id));
+        card.addEventListener('drop',      e => onCardDrop(e, entry.id));
+      }
+      cardGrid.appendChild(card);
+    });
+  }
+
+  function updateCard(id) {
+    const entry = files.find(f => f.id === id);
+    if (!entry) return;
+    const card = cardGrid.querySelector(`[data-id="${id}"]`);
+    if (!card) { renderGrid(); return; }
+    card.dataset.status = entry.status;
+    card.innerHTML = buildCardHTML(entry);
+    if (entry.status === 'pending') {
+      card.setAttribute('draggable', 'true');
+      card.addEventListener('dragstart', e => onCardDragStart(e, entry.id));
+      card.addEventListener('dragend',   onCardDragEnd);
+      card.addEventListener('dragover',  e => onCardDragOver(e, entry.id));
+      card.addEventListener('drop',      e => onCardDrop(e, entry.id));
+    } else {
+      card.removeAttribute('draggable');
+    }
+  }
+
+  function buildCardHTML(entry) {
+    const { id, file, status, pageCount, compressedSize, reductionPct, errorMsg } = entry;
+    const meta = [pageCount ? `${pageCount} σελ.` : null, fmtBytes(file.size)]
+      .filter(Boolean).join(' • ');
+
+    const removeBtn = status === 'pending'
+      ? `<button class="remove-card-btn" onclick="removeFile(${id})" title="Αφαίρεση" aria-label="Αφαίρεση αρχείου">×</button>`
+      : '';
+
+    let badge = '';
+    if (status === 'done')
+      badge = `<span class="status-badge done"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+    if (status === 'error')
+      badge = `<span class="status-badge error"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></span>`;
+
+    let body = '';
+    if (status === 'pending') {
+      body = `<div class="card-status-label">Σε αναμονή</div>`;
+    } else if (status === 'processing') {
+      body = `
+        <div class="card-progress-wrap">
+          <div class="card-progress-bar indeterminate" id="prog-${id}"></div>
+        </div>
+        <div class="card-status-label" id="prog-text-${id}">Επεξεργασία...</div>`;
+    } else if (status === 'done') {
+      body = `
+        <div class="card-result">${fmtBytes(compressedSize)} · −${reductionPct}%</div>
+        <button class="card-dl-btn" onclick="reDownload(${id})">Λήψη</button>
+        <button class="card-recompress-btn" onclick="recompressFile(${id})" title="Συμπίεση ξανά με διαφορετικό επίπεδο">↺ Ξανά</button>`;
+    } else if (status === 'error') {
+      body = `
+        <div class="card-error-msg">${escapeHtml(errorMsg || 'Σφάλμα')}</div>
+        <button class="card-retry-btn" onclick="retryFile(${id})" aria-label="Δοκιμή ξανά">↺ Δοκιμή ξανά</button>`;
+    }
+
+    return `
+      ${removeBtn}
+      <div class="card-icon-wrap" data-status="${status}">
+        <img class="card-icon" src="https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg" alt="PDF" draggable="false"/>
+        ${badge}
+      </div>
+      <div class="card-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div>
+      <div class="card-meta">${escapeHtml(meta)}</div>
+      ${body}`;
+  }
+
+  function reDownload(id) {
+    const entry = files.find(f => f.id === id);
+    if (!entry || !entry._blob) return;
+    const url = URL.createObjectURL(entry._blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = entry.file.name.replace(/\.pdf$/i, '') + '.compressed.pdf';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 110);
+  }
+
+  // ── Drop zone events ────────────────────────────────────
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', e => {
+    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('dragover');
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    addFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', e => { addFiles(e.target.files); fileInput.value = ''; });
+
+  // ── Page count extraction ───────────────────────────────
+  function extractPageCount(entry) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const arr = new Uint8Array(e.target.result);
+        let str = '';
+        for (let i = 0; i < arr.length; i++) str += String.fromCharCode(arr[i]);
+        const m = str.match(/\/Type\s*\/Pages[\s\S]{0,200}\/Count\s+(\d+)/);
+        if (!m) return;
+        entry.pageCount = parseInt(m[1]);
+        const card = cardGrid.querySelector(`[data-id="${entry.id}"]`);
+        if (!card) return;
+        const metaEl = card.querySelector('.card-meta');
+        if (metaEl) metaEl.textContent = `${entry.pageCount} σελ. • ${fmtBytes(entry.file.size)}`;
+      } catch (_) {}
+    };
+    reader.onerror = () => {};
+    reader.readAsArrayBuffer(entry.file.slice(0, 65536));
+  }
+
+  // ── Drag & Drop reorder ─────────────────────────────────
+  function onCardDragStart(e, id) {
+    dragSrcId = id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(id));
+    e.currentTarget.style.opacity = '0.4';
+  }
+  function onCardDragEnd(e) {
+    e.currentTarget.style.opacity = '';
+    dragSrcId = null;
+    document.querySelectorAll('.pdf-card').forEach(c => c.classList.remove('drag-over'));
+  }
+  function onCardDragOver(e, id) {
+    e.preventDefault();
+    if (dragSrcId === id) return;
+    const src = files.find(f => f.id === dragSrcId);
+    const tgt = files.find(f => f.id === id);
+    if (!src || !tgt || src.status !== 'pending' || tgt.status !== 'pending') return;
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.pdf-card').forEach(c => c.classList.remove('drag-over'));
+    e.currentTarget.classList.add('drag-over');
+  }
+  function onCardDrop(e, id) {
+    e.preventDefault();
+    document.querySelectorAll('.pdf-card').forEach(c => c.classList.remove('drag-over'));
+    if (!dragSrcId || dragSrcId === id) return;
+    const srcIdx = files.findIndex(f => f.id === dragSrcId);
+    const tgtIdx = files.findIndex(f => f.id === id);
+    if (srcIdx < 0 || tgtIdx < 0) return;
+    if (files[srcIdx].status !== 'pending' || files[tgtIdx].status !== 'pending') return;
+    [files[srcIdx], files[tgtIdx]] = [files[tgtIdx], files[srcIdx]];
+    dragSrcId = null;
+    renderGrid();
+    updateActionBar();
+  }
+
+  // ── Compression queue ───────────────────────────────────
+  async function runQueue() {
+    if (isProcessing) return;
+    const next = files.find(f => f.status === 'pending');
+    if (!next) return;
+    isProcessing = true;
+    updateActionBar();
+    try {
+      await compressFile(next.id);
+    } finally {
+      isProcessing = false;
+      updateActionBar();
+    }
+    if (files.some(f => f.status === 'pending')) {
+      runQueue();
+    } else {
+      const doneCount = files.filter(f => f.status === 'done').length;
+      const errCount  = files.filter(f => f.status === 'error').length;
+      if (doneCount > 0) {
+        const parts = [`${doneCount} ${plural(doneCount, 'αρχείο συμπιέστηκε', 'αρχεία συμπιέστηκαν')} επιτυχώς`];
+        if (errCount > 0) parts.push(`${errCount} ${plural(errCount, 'απέτυχε', 'απέτυχαν')}`);
+        showToast(parts.join(' · '));
+      } else if (errCount > 0) {
+        showToast(`${errCount} ${plural(errCount, 'αρχείο απέτυχε', 'αρχεία απέτυχαν')}`);
+      }
+    }
+  }
+
+  async function compressFile(id) {
+    const entry = files.find(f => f.id === id);
+    if (!entry) return;
+    entry.status = 'processing';
+    updateCard(id);
+    trackRequest();
+    try {
+      const formData = new FormData();
+      formData.append('pdf', entry.file);
+      formData.append('compressionLevel', qualitySel.value);
+      const blob = await uploadWithProgress(formData, pct => {
+        const bar = document.getElementById(`prog-${id}`);
+        const txt = document.getElementById(`prog-text-${id}`);
+        if (!bar || !txt) return;
+        if (pct >= 99.9) {
+          bar.style.width = '100%';
+          bar.classList.add('indeterminate');
+          txt.textContent = 'Επεξεργασία αρχείου...';
+        } else {
+          bar.classList.remove('indeterminate');
+          bar.style.width = `${pct.toFixed(1)}%`;
+          txt.textContent = `Ανέβασμα... ${pct.toFixed(0)}%`;
+        }
+      });
+      entry._blob = blob;
+      entry.compressedSize = blob.size;
+      const reduction = entry.file.size - blob.size;
+      entry.reductionPct = entry.file.size > 0
+        ? Math.max(0, (reduction / entry.file.size) * 100).toFixed(1)
+        : '0.0';
+      entry.status = 'done';
+      updateCard(id);
+      updateSummaryBar();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = entry.file.name.replace(/\.pdf$/i, '') + '.compressed.pdf';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 110);
+    } catch (err) {
+      let msg = err.message || 'Σφάλμα συμπίεσης';
+      if (msg.includes(';')) msg = msg.split(';')[0].trim();
+      entry.status = 'error';
+      entry.errorMsg = msg;
+      updateCard(id);
+      updateSummaryBar();
+    }
+  }
+
+  compressBtn.addEventListener('click', runQueue);
+
+  // ── Keyboard shortcut ───────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !['INPUT','SELECT','BUTTON','TEXTAREA'].includes(e.target.tagName)) {
+      if (!compressBtn.disabled) runQueue();
+    }
+  });
+
+  // ── Quality level persistence ───────────────────────────
+  const savedQuality = localStorage.getItem('pdfcompressor-quality');
+  if (savedQuality) qualitySel.value = savedQuality;
+  qualitySel.addEventListener('change', () => {
+    localStorage.setItem('pdfcompressor-quality', qualitySel.value);
+  });
+
+  // ── Dark mode ───────────────────────────────────────────
+  const themeBtn   = document.getElementById('themeBtn');
+  const themeIcon  = document.getElementById('themeIcon');
+  const themeLabel = document.getElementById('themeLabel');
+
+  const MOON_SVG = `<path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" stroke="#fff" stroke-width="2" fill="none"/>`;
+  const SUN_SVG  = `<circle cx="12" cy="12" r="5" stroke="#fff" stroke-width="2" fill="none"/>
+    <g stroke="#fff" stroke-width="2" stroke-linecap="round">
+      <line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/>
+      <line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/>
+      <line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/>
+    </g>`;
+
+  function applyTheme(dark) {
+    if (dark) {
+      document.documentElement.dataset.theme = 'dark';
+    } else {
+      delete document.documentElement.dataset.theme;
+    }
+    themeIcon.innerHTML = dark ? SUN_SVG : MOON_SVG;
+    themeLabel.textContent = dark ? 'Light Mode' : 'Dark Mode';
+  }
+  function toggleTheme() {
+    const isDark = document.documentElement.dataset.theme === 'dark';
+    applyTheme(!isDark);
+    localStorage.setItem('pdfcompressor-theme', !isDark ? 'dark' : 'light');
+  }
+  function loadTheme() {
+    const saved = localStorage.getItem('pdfcompressor-theme');
+    if (saved) { applyTheme(saved === 'dark'); return; }
+    applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+
+  themeBtn.addEventListener('click', toggleTheme);
+  loadTheme();
+  updateRateDisplay();
+</script>
+</body>
+</html>
+<!-- Made by KonsKall -->
