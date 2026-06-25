@@ -271,6 +271,23 @@ html[data-theme="dark"] .summary-bar {
   background: rgba(15,190,136,0.05); border-color: rgba(15,190,136,0.15);
 }
 
+.mode-switch {
+  flex-basis: 100%;
+  display: flex; gap: 4px;
+  background: var(--select-bg);
+  border: 1.5px solid var(--drop-border);
+  border-radius: 9px; padding: 4px;
+}
+.mode-opt {
+  flex: 1; border: none; background: transparent;
+  color: var(--text-sub); border-radius: 6px;
+  padding: 8px 10px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+.mode-opt.active { background: var(--accent); color: #fff; }
+.mode-opt:not(.active):hover { color: var(--text); }
+
 .action-bar {
   display: flex; align-items: center; gap: 10px;
   padding: 0 0 20px; flex-wrap: wrap;
@@ -423,6 +440,10 @@ footer a { color: #fff; }
     </div>
 
     <div class="action-bar" id="actionBar" style="display:none">
+      <div class="mode-switch" id="modeSwitch">
+        <button type="button" class="mode-opt active" data-mode="compress">Συμπίεση</button>
+        <button type="button" class="mode-opt" data-mode="excel">Μετατροπή σε Excel</button>
+      </div>
       <select id="quality">
         <option value="HIGH">Υψηλή συμπίεση (μικρότερο μέγεθος)</option>
         <option value="MEDIUM" selected>Ισορροπημένη (προτεινόμενη)</option>
@@ -461,6 +482,9 @@ footer a { color: #fff; }
       <li>PDF ήδη συμπιεσμένα</li>
       <li>PDF με βλάβες ή ασυνήθιστη δομή</li>
     </ul>
+    <div style="margin-top:8px;font-size:13px;border-top:1px solid rgba(0,0,0,0.08);padding-top:8px;">
+      ℹ️ Η μετατροπή σε Excel λειτουργεί καλύτερα σε PDF με πίνακες ή επιλέξιμο κείμενο. Σκαναρισμένα ή σύνθετα PDF μπορεί να μη μετατραπούν τέλεια.
+    </div>
   </div>
 
   <footer>
@@ -474,6 +498,34 @@ footer a { color: #fff; }
 <script>
   const API_URL = 'https://pdf-compress-api-dl83.onrender.com';
 
+  const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  function baseName(entry) { return entry.file.name.replace(/\.pdf$/i, ''); }
+
+  const OPERATIONS = {
+    compress: {
+      endpoint: '/api/compress',
+      responseMime: 'application/pdf',
+      usesQuality: true,
+      outputKind: 'pdf',
+      formFields: (entry, qualityValue) => ({ pdf: entry.file, compressionLevel: qualityValue }),
+      outName: base => base + '.compressed.pdf',
+      runButtonLabel: n => `Συμπίεση ${n} ${plural(n, 'αρχείου', 'αρχείων')}`,
+      idleLabel: 'Συμπίεση αρχείων',
+    },
+    excel: {
+      endpoint: '/api/convert',
+      responseMime: XLSX_MIME,
+      usesQuality: false,
+      outputKind: 'xlsx',
+      formFields: (entry) => ({ pdf: entry.file }),
+      outName: base => base + '.xlsx',
+      runButtonLabel: n => `Μετατροπή ${n} ${plural(n, 'αρχείου', 'αρχείων')} σε Excel`,
+      idleLabel: 'Μετατροπή σε Excel',
+    },
+  };
+  let mode = 'compress';
+
   function escapeHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -486,10 +538,10 @@ footer a { color: #fff; }
     const i = Math.floor(Math.log(n) / Math.log(k));
     return (n / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
   }
-  function uploadWithProgress(formData, onProgress) {
+  function uploadWithProgress(formData, endpoint, responseMime, onProgress) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${API_URL}/api/compress`, true);
+      xhr.open('POST', `${API_URL}${endpoint}`, true);
       xhr.responseType = 'arraybuffer';
       xhr.upload.onprogress = e => {
         if (e.lengthComputable && typeof onProgress === 'function')
@@ -498,9 +550,9 @@ footer a { color: #fff; }
       xhr.onreadystatechange = () => {
         if (xhr.readyState !== 4) return;
         if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(new Blob([xhr.response], { type: 'application/pdf' }));
+          resolve(new Blob([xhr.response], { type: responseMime }));
         } else {
-          let msg = 'Σφάλμα κατά τη συμπίεση';
+          let msg = 'Σφάλμα κατά την επεξεργασία';
           try {
             const text = new TextDecoder('utf-8').decode(xhr.response);
             const ct = xhr.getResponseHeader('content-type') || '';
@@ -580,7 +632,8 @@ footer a { color: #fff; }
       if (files.some(e => e.file.name === f.name && e.file.size === f.size)) continue;
       const entry = {
         id: ++idCounter, file: f, status: 'pending',
-        pageCount: null, compressedSize: null, reductionPct: null,
+        pageCount: null, outputSize: null, reductionPct: null,
+        outputKind: null, outputName: null,
         errorMsg: null, _blob: null
       };
       if (f.size > 10 * 1024 * 1024) {
@@ -619,7 +672,9 @@ footer a { color: #fff; }
     if (!entry || entry.status !== 'done') return;
     entry.status = 'pending';
     entry._blob = null;
-    entry.compressedSize = null;
+    entry.outputSize = null;
+    entry.outputName = null;
+    entry.outputKind = null;
     entry.reductionPct = null;
     updateCard(id);
     updateActionBar();
@@ -641,7 +696,7 @@ footer a { color: #fff; }
     try {
       const zip = new JSZip();
       doneFiles.forEach(entry => {
-        zip.file(entry.file.name.replace(/\.pdf$/i, '') + '.compressed.pdf', entry._blob);
+        zip.file(entry.outputName, entry._blob);
       });
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(blob);
@@ -658,14 +713,13 @@ footer a { color: #fff; }
   function updateActionBar() {
     const total        = files.length;
     const pendingCount = files.filter(f => f.status === 'pending').length;
+    const op           = OPERATIONS[mode];
     actionBar.style.display = total > 0 ? 'flex' : 'none';
     if (isProcessing) {
       compressBtn.textContent = 'Σε εξέλιξη...';
       compressBtn.disabled = true;
     } else {
-      compressBtn.textContent = pendingCount > 0
-        ? `Συμπίεση ${pendingCount} ${plural(pendingCount, 'αρχείου', 'αρχείων')}`
-        : 'Συμπίεση αρχείων';
+      compressBtn.textContent = pendingCount > 0 ? op.runButtonLabel(pendingCount) : op.idleLabel;
       compressBtn.disabled = pendingCount === 0;
     }
   }
@@ -675,12 +729,21 @@ footer a { color: #fff; }
     const hasCompleted = files.some(f => f.status === 'done' || f.status === 'error');
 
     if (doneFiles.length > 0) {
-      const totalOrig = doneFiles.reduce((s, f) => s + f.file.size, 0);
-      const totalComp = doneFiles.reduce((s, f) => s + (f.compressedSize || 0), 0);
-      const saved = Math.max(0, totalOrig - totalComp);
-      const pct = totalOrig > 0 ? Math.max(0, ((totalOrig - totalComp) / totalOrig) * 100).toFixed(1) : '0.0';
+      const compressed = doneFiles.filter(f => f.outputKind === 'pdf');
+      const converted  = doneFiles.filter(f => f.outputKind === 'xlsx');
+      const parts = [];
+      if (compressed.length > 0) {
+        const totalOrig = compressed.reduce((s, f) => s + f.file.size, 0);
+        const totalComp = compressed.reduce((s, f) => s + (f.outputSize || 0), 0);
+        const saved = Math.max(0, totalOrig - totalComp);
+        const pct = totalOrig > 0 ? Math.max(0, ((totalOrig - totalComp) / totalOrig) * 100).toFixed(1) : '0.0';
+        parts.push(`${compressed.length} ${plural(compressed.length, 'συμπιέστηκε', 'συμπιέστηκαν')} · Εξοικονόμηση ${fmtBytes(saved)} (−${pct}%)`);
+      }
+      if (converted.length > 0) {
+        parts.push(`${converted.length} ${plural(converted.length, 'μετατράπηκε σε Excel', 'μετατράπηκαν σε Excel')}`);
+      }
       summaryBar.style.display = 'flex';
-      summaryText.textContent = `${doneFiles.length} ${plural(doneFiles.length, 'αρχείο ολοκληρώθηκε', 'αρχεία ολοκληρώθηκαν')} · Εξοικονόμηση ${fmtBytes(saved)} (−${pct}%)`;
+      summaryText.textContent = parts.join(' · ');
     } else {
       summaryBar.style.display = 'none';
     }
@@ -734,7 +797,7 @@ footer a { color: #fff; }
   }
 
   function buildCardHTML(entry) {
-    const { id, file, status, pageCount, compressedSize, reductionPct, errorMsg } = entry;
+    const { id, file, status, pageCount, outputKind, outputSize, reductionPct, errorMsg } = entry;
     const meta = [pageCount ? `${pageCount} σελ.` : null, fmtBytes(file.size)]
       .filter(Boolean).join(' • ');
 
@@ -758,10 +821,13 @@ footer a { color: #fff; }
         </div>
         <div class="card-status-label" id="prog-text-${id}">Επεξεργασία...</div>`;
     } else if (status === 'done') {
+      const result = outputKind === 'xlsx'
+        ? `Excel (.xlsx) · ${fmtBytes(outputSize)}`
+        : `${fmtBytes(outputSize)} · −${reductionPct}%`;
       body = `
-        <div class="card-result">${fmtBytes(compressedSize)} · −${reductionPct}%</div>
+        <div class="card-result">${result}</div>
         <button class="card-dl-btn" onclick="reDownload(${id})">Λήψη</button>
-        <button class="card-recompress-btn" onclick="recompressFile(${id})" title="Συμπίεση ξανά με διαφορετικό επίπεδο">↺ Ξανά</button>`;
+        <button class="card-recompress-btn" onclick="recompressFile(${id})" title="Εκτέλεση ξανά">↺ Ξανά</button>`;
     } else if (status === 'error') {
       body = `
         <div class="card-error-msg">${escapeHtml(errorMsg || 'Σφάλμα')}</div>
@@ -785,7 +851,7 @@ footer a { color: #fff; }
     const url = URL.createObjectURL(entry._blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = entry.file.name.replace(/\.pdf$/i, '') + '.compressed.pdf';
+    a.download = entry.outputName;
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 110);
   }
@@ -867,7 +933,7 @@ footer a { color: #fff; }
     isProcessing = true;
     updateActionBar();
     try {
-      await compressFile(next.id);
+      await processFile(next.id);
     } finally {
       isProcessing = false;
       updateActionBar();
@@ -878,7 +944,7 @@ footer a { color: #fff; }
       const doneCount = files.filter(f => f.status === 'done').length;
       const errCount  = files.filter(f => f.status === 'error').length;
       if (doneCount > 0) {
-        const parts = [`${doneCount} ${plural(doneCount, 'αρχείο συμπιέστηκε', 'αρχεία συμπιέστηκαν')} επιτυχώς`];
+        const parts = [`${doneCount} ${plural(doneCount, 'αρχείο ολοκληρώθηκε', 'αρχεία ολοκληρώθηκαν')}`];
         if (errCount > 0) parts.push(`${errCount} ${plural(errCount, 'αρχείο απέτυχε', 'αρχεία απέτυχαν')}`);
         showToast(parts.join(' · '));
       } else if (errCount > 0) {
@@ -887,17 +953,19 @@ footer a { color: #fff; }
     }
   }
 
-  async function compressFile(id) {
+  async function processFile(id) {
     const entry = files.find(f => f.id === id);
     if (!entry) return;
+    const op = OPERATIONS[mode];
     entry.status = 'processing';
     updateCard(id);
     trackRequest();
     try {
       const formData = new FormData();
-      formData.append('pdf', entry.file);
-      formData.append('compressionLevel', qualitySel.value);
-      const blob = await uploadWithProgress(formData, pct => {
+      const fields = op.formFields(entry, qualitySel.value);
+      for (const [k, v] of Object.entries(fields)) formData.append(k, v);
+
+      const blob = await uploadWithProgress(formData, op.endpoint, op.responseMime, pct => {
         const bar = document.getElementById(`prog-${id}`);
         const txt = document.getElementById(`prog-text-${id}`);
         if (!bar || !txt) return;
@@ -911,23 +979,29 @@ footer a { color: #fff; }
           txt.textContent = `Ανέβασμα... ${pct.toFixed(0)}%`;
         }
       });
+
       entry._blob = blob;
-      entry.compressedSize = blob.size;
-      const reduction = entry.file.size - blob.size;
-      entry.reductionPct = entry.file.size > 0
-        ? Math.max(0, (reduction / entry.file.size) * 100).toFixed(1)
-        : '0.0';
+      entry.outputKind = op.outputKind;
+      entry.outputName = op.outName(baseName(entry));
+      entry.outputSize = blob.size;
+      if (op.outputKind === 'pdf') {
+        const reduction = entry.file.size - blob.size;
+        entry.reductionPct = entry.file.size > 0 ? Math.max(0, (reduction / entry.file.size) * 100).toFixed(1) : '0.0';
+      } else {
+        entry.reductionPct = null;
+      }
       entry.status = 'done';
       updateCard(id);
       updateSummaryBar();
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = entry.file.name.replace(/\.pdf$/i, '') + '.compressed.pdf';
+      a.download = entry.outputName;
       document.body.appendChild(a); a.click();
       setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 110);
     } catch (err) {
-      let msg = err.message || 'Σφάλμα συμπίεσης';
+      let msg = err.message || 'Σφάλμα επεξεργασίας';
       if (msg.includes(';')) msg = msg.split(';')[0].trim();
       entry.status = 'error';
       entry.errorMsg = msg;
@@ -951,6 +1025,20 @@ footer a { color: #fff; }
   qualitySel.addEventListener('change', () => {
     localStorage.setItem('pdfcompressor-quality', qualitySel.value);
   });
+
+  // ── Operation mode (compress | excel) ───────────────────
+  const MODE_KEY = 'pdfcompressor-mode';
+  function applyMode(next) {
+    mode = (next === 'excel') ? 'excel' : 'compress';
+    localStorage.setItem(MODE_KEY, mode);
+    document.querySelectorAll('.mode-opt').forEach(b =>
+      b.classList.toggle('active', b.dataset.mode === mode));
+    qualitySel.style.display = OPERATIONS[mode].usesQuality ? '' : 'none';
+    updateActionBar();
+  }
+  document.querySelectorAll('.mode-opt').forEach(b =>
+    b.addEventListener('click', () => applyMode(b.dataset.mode)));
+  applyMode(localStorage.getItem(MODE_KEY) || 'compress');
 
   // ── Dark mode ───────────────────────────────────────────
   const themeBtn   = document.getElementById('themeBtn');
