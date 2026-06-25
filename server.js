@@ -13,6 +13,10 @@ const {
   CompressPDFParams,
   CompressionLevel,
   CompressPDFResult,
+  ExportPDFJob,
+  ExportPDFParams,
+  ExportPDFResult,
+  ExportPDFTargetFormat,
   SDKError,
   ServiceUsageError,
   ServiceApiError
@@ -55,104 +59,115 @@ const upload = multer({
   }
 });
 
-// Endpoint για συμπίεση PDF
+// Διαγραφή προσωρινών αρχείων (αγνοεί σφάλματα)
+function cleanupFiles(...paths) {
+  for (const p of paths) {
+    try { if (p && fs.existsSync(p)) fs.unlinkSync(p); } catch (_) { /* ήδη διαγράφηκε */ }
+  }
+}
+
+// Φιλικό μήνυμα για σφάλματα Adobe (null = μη-Adobe σφάλμα)
+function adobeErrorMessage(err) {
+  if (err instanceof SDKError || err instanceof ServiceUsageError) return 'Σφάλμα Adobe API: ' + err.message;
+  if (err instanceof ServiceApiError) return 'Σφάλμα υπηρεσίας Adobe: ' + err.message;
+  return null;
+}
+
+// Κοινό pipeline: upload PDF → εκτέλεση job → εγγραφή αποτελέσματος σε προσωρινό αρχείο.
+// jobBuilder({ inputAsset }) επιστρέφει { job, resultType }. Επιστρέφει το outputPath.
+async function processPdf(inputPath, { prefix, ext }, jobBuilder) {
+  const credentials = new ServicePrincipalCredentials({
+    clientId: process.env.PDF_SERVICES_CLIENT_ID,
+    clientSecret: process.env.PDF_SERVICES_CLIENT_SECRET
+  });
+  const pdfServices = new PDFServices({ credentials });
+
+  const readStream = fs.createReadStream(inputPath);
+  const inputAsset = await pdfServices.upload({ readStream, mimeType: MimeType.PDF });
+
+  const { job, resultType } = jobBuilder({ inputAsset });
+  const pollingURL = await pdfServices.submit({ job });
+  const pdfServicesResponse = await pdfServices.getJobResult({ pollingURL, resultType });
+
+  const resultAsset = pdfServicesResponse.result.asset;
+  const streamAsset = await pdfServices.getContent({ asset: resultAsset });
+
+  const outputPath = path.join('uploads', `${prefix}-${Date.now()}.${ext}`);
+  const outputStream = fs.createWriteStream(outputPath);
+  await new Promise((resolve, reject) => {
+    streamAsset.readStream.pipe(outputStream);
+    outputStream.on('finish', resolve);
+    outputStream.on('error', reject);
+  });
+  return outputPath;
+}
+
 app.post('/api/compress', compressLimiter, upload.single('pdf'), async (req, res) => {
   let inputPath = null;
   let outputPath = null;
-
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'Δεν βρέθηκε PDF αρχείο' });
     }
-
     inputPath = req.file.path;
     const compressionLevel = req.body.compressionLevel || 'MEDIUM';
-
-    // Validate compression level
-    const validLevels = ['LOW', 'MEDIUM', 'HIGH'];
-    if (!validLevels.includes(compressionLevel)) {
+    if (!['LOW', 'MEDIUM', 'HIGH'].includes(compressionLevel)) {
       throw new Error('Μη έγκυρο επίπεδο συμπίεσης');
     }
 
     const originalName = req.file.originalname || req.file.filename;
     console.log(`Συμπίεση PDF: ${JSON.stringify(originalName)} με επίπεδο: ${compressionLevel}`);
 
-    // Setup Adobe credentials
-    const credentials = new ServicePrincipalCredentials({
-      clientId: process.env.PDF_SERVICES_CLIENT_ID,
-      clientSecret: process.env.PDF_SERVICES_CLIENT_SECRET
-    });
+    const params = new CompressPDFParams({ compressionLevel: CompressionLevel[compressionLevel] });
+    outputPath = await processPdf(inputPath, { prefix: 'compressed', ext: 'pdf' },
+      ({ inputAsset }) => ({ job: new CompressPDFJob({ inputAsset, params }), resultType: CompressPDFResult }));
 
-    // Create PDF Services instance
-    const pdfServices = new PDFServices({ credentials });
-
-    // Upload input file
-    const readStream = fs.createReadStream(inputPath);
-    const inputAsset = await pdfServices.upload({
-      readStream,
-      mimeType: MimeType.PDF
-    });
-
-    // Set compression parameters
-    const params = new CompressPDFParams({
-      compressionLevel: CompressionLevel[compressionLevel]
-    });
-
-    // Create and submit job
-    const job = new CompressPDFJob({ inputAsset, params });
-    const pollingURL = await pdfServices.submit({ job });
-    const pdfServicesResponse = await pdfServices.getJobResult({
-      pollingURL,
-      resultType: CompressPDFResult
-    });
-
-    // Get compressed PDF
-    const resultAsset = pdfServicesResponse.result.asset;
-    const streamAsset = await pdfServices.getContent({ asset: resultAsset });
-
-    // Save to temp file
-    outputPath = path.join('uploads', `compressed-${Date.now()}.pdf`);
-    const outputStream = fs.createWriteStream(outputPath);
-
-    await new Promise((resolve, reject) => {
-      streamAsset.readStream.pipe(outputStream);
-      outputStream.on('finish', resolve);
-      outputStream.on('error', reject);
-    });
-
-    // Get file sizes
     const originalSize = fs.statSync(inputPath).size;
     const compressedSize = fs.statSync(outputPath).size;
-    const reduction = originalSize - compressedSize;
-    const reductionPercent = originalSize > 0 
-      ? ((reduction / originalSize) * 100).toFixed(1) 
-      : '0.0';
-
+    const reductionPercent = originalSize > 0 ? (((originalSize - compressedSize) / originalSize) * 100).toFixed(1) : '0.0';
     console.log(`Συμπίεση ολοκληρώθηκε: ${originalSize} → ${compressedSize} bytes (${reductionPercent}%)`);
 
-    // Send compressed file
     res.download(outputPath, 'compressed.pdf', (err) => {
-      try { if (inputPath) fs.unlinkSync(inputPath); } catch (_) {}
-      try { if (outputPath) fs.unlinkSync(outputPath); } catch (_) {}
+      cleanupFiles(inputPath, outputPath);
       if (err) console.error('Σφάλμα κατά την αποστολή αρχείου:', err);
     });
-
   } catch (err) {
     console.error('Σφάλμα συμπίεσης:', err);
+    cleanupFiles(inputPath, outputPath);
+    res.status(500).json({ error: adobeErrorMessage(err) || 'Σφάλμα κατά τη συμπίεση του PDF' });
+  }
+});
 
-    // Cleanup on error
-    if (inputPath && fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
-    if (outputPath && fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-
-    let errorMessage = 'Σφάλμα κατά τη συμπίεση του PDF';
-    
-    if (err instanceof SDKError || err instanceof ServiceUsageError) {
-      errorMessage = 'Σφάλμα Adobe API: ' + err.message;
-    } else if (err instanceof ServiceApiError) {
-      errorMessage = 'Σφάλμα υπηρεσίας Adobe: ' + err.message;
+// Endpoint για μετατροπή PDF σε Excel (.xlsx)
+app.post('/api/convert', compressLimiter, upload.single('pdf'), async (req, res) => {
+  let inputPath = null;
+  let outputPath = null;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Δεν βρέθηκε PDF αρχείο' });
     }
+    inputPath = req.file.path;
 
-    res.status(500).json({ error: errorMessage });
+    const originalName = req.file.originalname || req.file.filename;
+    console.log(`Μετατροπή PDF σε Excel: ${JSON.stringify(originalName)}`);
+
+    const params = new ExportPDFParams({ targetFormat: ExportPDFTargetFormat.XLSX });
+    outputPath = await processPdf(inputPath, { prefix: 'converted', ext: 'xlsx' },
+      ({ inputAsset }) => ({ job: new ExportPDFJob({ inputAsset, params }), resultType: ExportPDFResult }));
+
+    let convertedSize = '?';
+    try { convertedSize = fs.statSync(outputPath).size; } catch (_) {}
+    console.log(`Μετατροπή ολοκληρώθηκε: ${convertedSize} bytes`);
+
+    const downloadName = path.parse(originalName).name + '.xlsx';
+    res.download(outputPath, downloadName, (err) => {
+      cleanupFiles(inputPath, outputPath);
+      if (err) console.error('Σφάλμα κατά την αποστολή αρχείου:', err);
+    });
+  } catch (err) {
+    console.error('Σφάλμα μετατροπής:', err);
+    cleanupFiles(inputPath, outputPath);
+    res.status(500).json({ error: adobeErrorMessage(err) || 'Σφάλμα κατά τη μετατροπή σε Excel' });
   }
 });
 
